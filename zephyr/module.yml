@@ -1,1 +1,4 @@
 name: adafruit-sharp-module
+build:
+  settings:
+    board_root: .
