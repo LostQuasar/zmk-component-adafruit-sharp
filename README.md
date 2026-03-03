@@ -4,6 +4,7 @@ This repository adds a ZMK shield definition for the [Adafruit Sharp Display Bre
 
 ## Usage
 This module is designed to be used with ZMK 4.0+ exclusively.
+Example usage in [zmk-conf](https://github.com/LostQuasar/adafruit-sharp-zmk-conf)
 
 `build.yaml`
 ```
@@ -32,3 +33,4 @@ manifest:
     path: config
 
 ```
+
