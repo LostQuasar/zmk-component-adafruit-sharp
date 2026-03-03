@@ -1,0 +1,8 @@
+file_format: "1"
+id: adafruit_sharp
+name: adafruit_sharp
+type: shield
+url: https://www.adafruit.com/product/3502
+requires: [nice_view_header]
+features:
+  - display
