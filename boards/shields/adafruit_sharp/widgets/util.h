@@ -9,7 +9,7 @@
 #include <zmk/endpoints.h>
 
 #define DISPLAY_PROFILE_COUNT 5
-
+#define SOURCE_OFFSET 1
 #define CANVAS_SIZE 144
 #define CANVAS_COLOR_FORMAT LV_COLOR_FORMAT_L8 // smallest type supported by sw_rotate
 #define CANVAS_BUF_SIZE                                                                        \
@@ -21,12 +21,16 @@
 #define LVGL_FOREGROUND \
     IS_ENABLED(CONFIG_NICE_VIEW_WIDGET_INVERTED) ? lv_color_white() : lv_color_black()
 
-struct status_state
+struct battery_state
 {
     uint8_t battery;
-    uint8_t batt_source;
     bool charging;
-#if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+};
+
+struct status_state
+{
+    struct battery_state battery_state[ZMK_SPLIT_BLE_PERIPHERAL_COUNT];
+    #if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     struct zmk_endpoint_instance selected_endpoint;
     int active_profile_index;
     bool active_profile_connected;

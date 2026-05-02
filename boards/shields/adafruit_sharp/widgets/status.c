@@ -239,7 +239,6 @@ static void draw_bottom(lv_obj_t *widget, const struct status_state *state)
     rotate_canvas(canvas);
 }
 
-#define SOURCE_OFFSET 1
 
 static void set_battery_status(struct zmk_widget_status *widget,
                                struct battery_status_state state)
@@ -249,11 +248,10 @@ static void set_battery_status(struct zmk_widget_status *widget,
         return;
     }
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-    widget->state.charging = state.usb_present;
+    widget->state.battery_state[state.source].charging = state.usb_present;
 #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
 
-    widget->state.battery = state.level;
-    widget->state.batt_source = state.source;
+    widget->state.battery_state[state.source].battery = state.level;
     draw_top(widget->obj, &widget->state);
 }
 
@@ -269,9 +267,7 @@ static struct battery_status_state peripheral_battery_status_get_state(const zmk
     return (struct battery_status_state){
         .source = ev->source + SOURCE_OFFSET,
         .level = ev->state_of_charge,
-#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
-        .usb_present = zmk_usb_is_powered(),
-#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
+        .usb_present = false,
     };
 }
 
