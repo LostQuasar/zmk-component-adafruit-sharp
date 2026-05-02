@@ -22,23 +22,24 @@ void rotate_canvas(lv_obj_t *canvas)
 }
 
 void draw_battery(lv_obj_t *canvas, const struct status_state *state)
-{
+{   
+    uint8_t x_offset = state->batt_source*20;
     lv_draw_rect_dsc_t rect_black_dsc;
     init_rect_dsc(&rect_black_dsc, LVGL_BACKGROUND);
     lv_draw_rect_dsc_t rect_white_dsc;
     init_rect_dsc(&rect_white_dsc, LVGL_FOREGROUND);
 
-    canvas_draw_rect(canvas, 0, 2, 29, 12, &rect_white_dsc);
-    canvas_draw_rect(canvas, 1, 3, 27, 10, &rect_black_dsc);
-    canvas_draw_rect(canvas, 2, 4, (state->battery + 2) / 4, 8, &rect_white_dsc);
-    canvas_draw_rect(canvas, 30, 5, 3, 6, &rect_white_dsc);
-    canvas_draw_rect(canvas, 31, 6, 1, 4, &rect_black_dsc);
+    canvas_draw_rect(canvas, x_offset+0, 2, 29, 12, &rect_white_dsc);
+    canvas_draw_rect(canvas, x_offset+1, 3, 27, 10, &rect_black_dsc);
+    canvas_draw_rect(canvas, x_offset+2, 4, (state->battery + 2) / 4, 8, &rect_white_dsc);
+    canvas_draw_rect(canvas, x_offset+30, 5, 3, 6, &rect_white_dsc);
+    canvas_draw_rect(canvas, x_offset+31, 6, 1, 4, &rect_black_dsc);
 
     if (state->charging)
     {
         lv_draw_image_dsc_t img_dsc;
         lv_draw_image_dsc_init(&img_dsc);
-        canvas_draw_img(canvas, 9, -1, &bolt, &img_dsc);
+        canvas_draw_img(canvas, x_offset+9, -1, &bolt, &img_dsc);
     }
 }
 

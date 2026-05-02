@@ -68,37 +68,42 @@ static void draw_top(lv_obj_t *widget, const struct status_state *state)
     lv_canvas_fill_bg(canvas, LVGL_BACKGROUND, LV_OPA_COVER);
 
     // Draw battery
-    draw_battery(canvas, state);
-
-    // Draw output status
-    char output_text[10] = {};
-
-    switch (state->selected_endpoint.transport)
+    if (!CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     {
-    case ZMK_TRANSPORT_USB:
-        strcat(output_text, LV_SYMBOL_USB);
-        break;
-    case ZMK_TRANSPORT_BLE:
-        if (state->active_profile_bonded)
+        draw_battery(canvas, state);
+
+        // Draw output status
+        char output_text[10] = {};
+
+        switch (state->selected_endpoint.transport)
         {
-            if (state->active_profile_connected)
+        case ZMK_TRANSPORT_USB:
+            strcat(output_text, LV_SYMBOL_USB);
+            break;
+        case ZMK_TRANSPORT_BLE:
+            if (state->active_profile_bonded)
             {
-                strcat(output_text, LV_SYMBOL_WIFI);
+                if (state->active_profile_connected)
+                {
+                    strcat(output_text, LV_SYMBOL_WIFI);
+                }
+                else
+                {
+                    strcat(output_text, LV_SYMBOL_CLOSE);
+                }
             }
             else
             {
-                strcat(output_text, LV_SYMBOL_CLOSE);
+                strcat(output_text, LV_SYMBOL_SETTINGS);
             }
+            break;
         }
-        else
-        {
-            strcat(output_text, LV_SYMBOL_SETTINGS);
-        }
-        break;
+
+        canvas_draw_text(canvas, 0, 0, CANVAS_SIZE, &label_dsc, output_text);
     }
-
-    canvas_draw_text(canvas, 0, 0, CANVAS_SIZE, &label_dsc, output_text);
-
+    else {
+        draw_battery(canvas, state);
+    }
     // Draw WPM
     canvas_draw_rect(canvas, 0, 21, 144, 42, &rect_white_dsc);
     canvas_draw_rect(canvas, 1, 22, 142, 40, &rect_black_dsc);
@@ -234,15 +239,21 @@ static void draw_bottom(lv_obj_t *widget, const struct status_state *state)
     rotate_canvas(canvas);
 }
 
+#define SOURCE_OFFSET 1
+
 static void set_battery_status(struct zmk_widget_status *widget,
                                struct battery_status_state state)
 {
+    if (state.source >= ZMK_SPLIT_BLE_PERIPHERAL_COUNT + SOURCE_OFFSET)
+    {
+        return;
+    }
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
     widget->state.charging = state.usb_present;
 #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
 
     widget->state.battery = state.level;
-
+    widget->state.batt_source = state.source;
     draw_top(widget->obj, &widget->state);
 }
 
@@ -252,11 +263,24 @@ static void battery_status_update_cb(struct battery_status_state state)
     SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { set_battery_status(widget, state); }
 }
 
-static struct battery_status_state battery_status_get_state(const zmk_event_t *eh)
+static struct battery_status_state peripheral_battery_status_get_state(const zmk_event_t *eh)
+{
+    const struct zmk_peripheral_battery_state_changed *ev = as_zmk_peripheral_battery_state_changed(eh);
+    return (struct battery_status_state){
+        .source = ev->source + SOURCE_OFFSET,
+        .level = ev->state_of_charge,
+#if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
+        .usb_present = zmk_usb_is_powered(),
+#endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */
+    };
+}
+
+static struct battery_status_state central_battery_status_get_state(const zmk_event_t *eh)
 {
     const struct zmk_battery_state_changed *ev = as_zmk_battery_state_changed(eh);
 
     return (struct battery_status_state){
+        .source = 0,
         .level = (ev != NULL) ? ev->state_of_charge : zmk_battery_state_of_charge(),
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
         .usb_present = zmk_usb_is_powered(),
@@ -264,10 +288,23 @@ static struct battery_status_state battery_status_get_state(const zmk_event_t *e
     };
 }
 
+static struct battery_status_state battery_status_get_state(const zmk_event_t *eh)
+{
+    if (as_zmk_peripheral_battery_state_changed(eh) != NULL)
+    {
+        return peripheral_battery_status_get_state(eh);
+    }
+    else
+    {
+        return central_battery_status_get_state(eh);
+    }
+}
+
 ZMK_DISPLAY_WIDGET_LISTENER(widget_battery_status, struct battery_status_state,
                             battery_status_update_cb, battery_status_get_state)
 
 ZMK_SUBSCRIPTION(widget_battery_status, zmk_battery_state_changed);
+ZMK_SUBSCRIPTION(widget_battery_status, zmk_peripheral_battery_state_changed);
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
 ZMK_SUBSCRIPTION(widget_battery_status, zmk_usb_conn_state_changed);
 #endif /* IS_ENABLED(CONFIG_USB_DEVICE_STACK) */

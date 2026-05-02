@@ -24,6 +24,7 @@
 struct status_state
 {
     uint8_t battery;
+    uint8_t batt_source;
     bool charging;
 #if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     struct zmk_endpoint_instance selected_endpoint;
@@ -42,6 +43,7 @@ struct status_state
 
 struct battery_status_state
 {
+    uint8_t source;
     uint8_t level;
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
     bool usb_present;
