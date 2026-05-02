@@ -11,7 +11,8 @@
 #include <zephyr/kernel.h>
 #include "util.h"
 
-struct zmk_widget_status {
+struct zmk_widget_status
+{
     sys_snode_t node;
     lv_obj_t *obj;
     uint8_t cbuf[CANVAS_BUF_SIZE];

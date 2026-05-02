@@ -12,16 +12,17 @@
 
 #define CANVAS_SIZE 144
 #define CANVAS_COLOR_FORMAT LV_COLOR_FORMAT_L8 // smallest type supported by sw_rotate
-#define CANVAS_BUF_SIZE                                                                            \
-    LV_CANVAS_BUF_SIZE(CANVAS_SIZE, CANVAS_SIZE, LV_COLOR_FORMAT_GET_BPP(CANVAS_COLOR_FORMAT),     \
+#define CANVAS_BUF_SIZE                                                                        \
+    LV_CANVAS_BUF_SIZE(CANVAS_SIZE, CANVAS_SIZE, LV_COLOR_FORMAT_GET_BPP(CANVAS_COLOR_FORMAT), \
                        LV_DRAW_BUF_STRIDE_ALIGN)
 
-#define LVGL_BACKGROUND                                                                            \
+#define LVGL_BACKGROUND \
     IS_ENABLED(CONFIG_NICE_VIEW_WIDGET_INVERTED) ? lv_color_black() : lv_color_white()
-#define LVGL_FOREGROUND                                                                            \
+#define LVGL_FOREGROUND \
     IS_ENABLED(CONFIG_NICE_VIEW_WIDGET_INVERTED) ? lv_color_white() : lv_color_black()
 
-struct status_state {
+struct status_state
+{
     uint8_t battery;
     bool charging;
 #if !IS_ENABLED(CONFIG_ZMK_SPLIT) || IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
@@ -39,7 +40,8 @@ struct status_state {
 #endif
 };
 
-struct battery_status_state {
+struct battery_status_state
+{
     uint8_t level;
 #if IS_ENABLED(CONFIG_USB_DEVICE_STACK)
     bool usb_present;
