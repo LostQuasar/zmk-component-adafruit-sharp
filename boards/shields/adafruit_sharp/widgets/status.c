@@ -101,7 +101,8 @@ static void draw_top(lv_obj_t *widget, const struct status_state *state)
 
         canvas_draw_text(canvas, 0, 0, CANVAS_SIZE, &label_dsc, output_text);
     }
-    else {
+    else
+    {
         draw_battery(canvas, state);
     }
     // Draw WPM
@@ -164,45 +165,47 @@ static void draw_middle(lv_obj_t *widget, const struct status_state *state)
 
     // Fill background
     lv_canvas_fill_bg(canvas, LVGL_BACKGROUND, LV_OPA_COVER);
-
-    // Draw circles
-    int circle_offsets[DISPLAY_PROFILE_COUNT][2] = {
-        {13, 13},
-        {55, 13},
-        {34, 34},
-        {13, 55},
-        {55, 55},
-    };
-
-    for (int i = 0; i < DISPLAY_PROFILE_COUNT; i++)
+    if (!CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     {
-        bool selected = i == state->active_profile_index;
+        // Draw circles
+        int circle_offsets[DISPLAY_PROFILE_COUNT][2] = {
+            {13, 13},
+            {55, 13},
+            {34, 34},
+            {13, 55},
+            {55, 55},
+        };
 
-        if (state->profiles_connected[i])
+        for (int i = 0; i < DISPLAY_PROFILE_COUNT; i++)
         {
-            canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 13, 0, 360,
-                            &arc_dsc);
-        }
-        else if (state->profiles_bonded[i])
-        {
-            const int segments = 8;
-            const int gap = 20;
-            for (int j = 0; j < segments; ++j)
-                canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 13,
-                                360. / segments * j + gap / 2.0,
-                                360. / segments * (j + 1) - gap / 2.0, &arc_dsc);
-        }
+            bool selected = i == state->active_profile_index;
 
-        if (selected)
-        {
-            canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 9, 0, 359,
-                            &arc_dsc_filled);
-        }
+            if (state->profiles_connected[i])
+            {
+                canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 13, 0, 360,
+                                &arc_dsc);
+            }
+            else if (state->profiles_bonded[i])
+            {
+                const int segments = 8;
+                const int gap = 20;
+                for (int j = 0; j < segments; ++j)
+                    canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 13,
+                                    360. / segments * j + gap / 2.0,
+                                    360. / segments * (j + 1) - gap / 2.0, &arc_dsc);
+            }
 
-        char label[2];
-        snprintf(label, sizeof(label), "%d", i + 1);
-        canvas_draw_text(canvas, circle_offsets[i][0] - 8, circle_offsets[i][1] - 10, 16,
-                         (selected ? &label_dsc_black : &label_dsc), label);
+            if (selected)
+            {
+                canvas_draw_arc(canvas, circle_offsets[i][0], circle_offsets[i][1], 9, 0, 359,
+                                &arc_dsc_filled);
+            }
+
+            char label[2];
+            snprintf(label, sizeof(label), "%d", i + 1);
+            canvas_draw_text(canvas, circle_offsets[i][0] - 8, circle_offsets[i][1] - 10, 16,
+                             (selected ? &label_dsc_black : &label_dsc), label);
+        }
     }
 
     // Rotate canvas
@@ -238,7 +241,6 @@ static void draw_bottom(lv_obj_t *widget, const struct status_state *state)
     // Rotate canvas
     rotate_canvas(canvas);
 }
-
 
 static void set_battery_status(struct zmk_widget_status *widget,
                                struct battery_status_state state)
